@@ -1,12 +1,24 @@
 import requests
-import pandas as pd
+import pandas as pd 
+from pandas import json_normalize
 import os
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
+from sqlalchemy import create_engine
+import psycopg2
+import re
 
 load_dotenv()
 api_key = os.getenv('weather_api_key')
 base_url = 'http://api.weatherapi.com/v1'
+
+db_name = os.getenv('db_name')
+user = os.getenv('user')
+password = os.getenv('password')
+host = os.getenv('host')
+port = os.getenv('port')
+
+engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 
 capitals = [
     "Johor Bahru", 
@@ -22,14 +34,11 @@ capitals = [
     "Kuching", 
     "Shah Alam", 
     "Kuala Terengganu",
-    "Kuala Lumpur", 
+    "Kuala Lumpur" 
 ]
 
 def get_hourly_history():
-    folder_path = 'hourly_data'
-    os.makedirs(folder_path, exist_ok=True)
     history_url = base_url + "/history.json"
-
     dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(1,9)]
 
     for date in dates:
@@ -38,36 +47,26 @@ def get_hourly_history():
             try:
                 response = requests.get(history_url, params=params)
                 if response.status_code == 200:
+                    # flatten the data
                     history_data = response.json()
-                    day = history_data['forecast']['forecastday'][0]['day']        
-                    hourly = history_data['forecast']['forecastday'][0]['hour']
+                    raw_data = pd.json_normalize(history_data)
+                    hours_df = pd.json_normalize(raw_data['forecast.forecastday'][0][0]['hour'])
                     
-                    hourly_dict = {}
+                    # transform the data
+                    hours_df['location'] = raw_data['location.name']
+                    hours_df['region'] = raw_data['location.region']
+                    hours_df['country'] = raw_data['location.country']
+                    hours_df = hours_df.ffill(axis=0)
                     
-                    for d in hourly:
-                        for key, value in d.items():
-                            if key in hourly_dict:
-                                hourly_dict[key].append(value)
-                            else:
-                                hourly_dict[key] = [value]
-                    df = pd.DataFrame(hourly_dict)
+                    # saving into postgresql
+                    # capital = re.sub(r'(\w+)\s+(\w+)', lambda m: f"{m.group(1).lower()}_{m.group(2).lower()}", capital)
 
-                    file_name = f"{capital}_{date}"
-                    file_path = os.path.join(folder_path , file_name)
+                    capital = re.sub(r'\s+', '_', capital)
+                    with engine.begin() as connection:
+                        hours_df.to_sql(f"{capital}_hourly" , if_exists='append' , index=False , con=connection)
 
-                    if os.path.exists(file_path):
-                        print(f"{file_path} is already existed, skipping...")
-                        continue
-                    else:
-                        print(f'saving {file_path}...')
-                        df.to_csv(file_path , index=False, header=True, encoding=None)
-                
-                # elif response.status_code == 404:
-                #     print("Error: Not Found (404)")
-                elif response.status_code == 401:
-                    print("Error: API key provided is invalid.")
                 else:
-                    print(f"Error: Received unexpected status code {response.status_code}")
+                    print(f"Error: Received unexpected status code {response.status_code} on {capital}_{date}")
 
             except requests.exceptions.RequestException as e:
                 print(f"An error occurred: {e}")
