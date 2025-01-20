@@ -23,27 +23,27 @@ port = os.getenv('port')
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 
 capitals = [
-    "Johor Bahru", 
-    "Alor Setar", 
-    "Kota Bharu", 
-    "Melaka", 
-    "Seremban", 
-    "Kuantan", 
-    "George Town", 
-    "Ipoh", 
-    "Kangar", 
-    "Kota Kinabalu", 
-    "Kuching", 
-    "Shah Alam", 
-    "Kuala Terengganu",
-    "Kuala Lumpur" 
+    "johor bahru", 
+    "alor setar", 
+    "kota bharu", 
+    "melaka", 
+    "seremban", 
+    "kuantan", 
+    "george town", 
+    "ipoh", 
+    "kangar", 
+    "kota kinabalu", 
+    "kuching", 
+    "shah alam", 
+    "kuala terengganu",
+    "kuala lumpur" 
 ]
-dates_string = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(1,9)]
-dates = [(datetime.now() - timedelta(day)) for day in range(1,9)]
+
+dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(1,9)]
 
 def get_daily_history():
     for capital in capitals:
-        for date in dates_string:
+        for date in dates:
             params = {'key': api_key, 'q': capital , 'dt': date}
             response = requests.get(history_url , params=params)
             day_history_data = response.json()

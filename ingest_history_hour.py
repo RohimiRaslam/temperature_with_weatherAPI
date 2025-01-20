@@ -11,8 +11,10 @@ import re
 load_dotenv()
 api_key = os.getenv('weather_api_key')
 base_url = 'http://api.weatherapi.com/v1'
+history_url = base_url + "/history.json"
 
 db_name = os.getenv('db_name')
+# db_name = "test_db"
 user = os.getenv('user')
 password = os.getenv('password')
 host = os.getenv('host')
@@ -21,26 +23,25 @@ port = os.getenv('port')
 engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
 
 capitals = [
-    "Johor Bahru", 
-    "Alor Setar", 
-    "Kota Bharu", 
-    "Malacca City", 
-    "Seremban", 
-    "Kuantan", 
-    "George Town", 
-    "Ipoh", 
-    "Kangar", 
-    "Kota Kinabalu", 
-    "Kuching", 
-    "Shah Alam", 
-    "Kuala Terengganu",
-    "Kuala Lumpur" 
+    "johor bahru", 
+    "alor setar", 
+    "kota bharu", 
+    "melaka", 
+    "seremban", 
+    "kuantan", 
+    "george town", 
+    "ipoh", 
+    "kangar", 
+    "kota kinabalu", 
+    "kuching", 
+    "shah alam", 
+    "kuala terengganu",
+    "kuala lumpur" 
 ]
 
-def get_hourly_history():
-    history_url = base_url + "/history.json"
-    dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(1,9)]
+dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(1,9)]
 
+def get_hourly_history():
     for date in dates:
         for capital in capitals:
             params = {"key": api_key, "q": capital, "dt": date}
@@ -59,8 +60,6 @@ def get_hourly_history():
                     hours_df = hours_df.ffill(axis=0)
                     
                     # saving into postgresql
-                    # capital = re.sub(r'(\w+)\s+(\w+)', lambda m: f"{m.group(1).lower()}_{m.group(2).lower()}", capital)
-
                     capital = re.sub(r'\s+', '_', capital)
                     with engine.begin() as connection:
                         hours_df.to_sql(f"{capital}_hourly" , if_exists='append' , index=False , con=connection)
