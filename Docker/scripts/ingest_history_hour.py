@@ -11,10 +11,9 @@ import re
 load_dotenv()
 api_key = os.getenv('weather_api_key')
 base_url = 'http://api.weatherapi.com/v1'
-history_url = base_url + "/history.json"
+history_url = base_url + "/history.json" 
 
 db_name = os.getenv('db_name')
-# db_name = "test_db"
 user = os.getenv('user')
 password = os.getenv('password')
 host = os.getenv('host')
@@ -39,7 +38,7 @@ capitals = [
     "kuala lumpur" 
 ]
 
-dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(1,9)]
+dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(0,9)]
 
 def get_hourly_history():
     for date in dates:
@@ -61,8 +60,9 @@ def get_hourly_history():
                     
                     # saving into postgresql
                     capital = re.sub(r'\s+', '_', capital)
-                    with engine.begin() as connection:
-                        hours_df.to_sql(f"{capital}_hourly" , if_exists='append' , index=False , con=connection)
+
+                    with engine.connect() as conn:
+                        hours_df.to_sql(f"{capital}_hourly" , if_exists='append' , index=False , con=conn)
 
                 else:
                     print(f"Error: Received unexpected status code {response.status_code} on {capital}_{date}")

@@ -39,7 +39,7 @@ capitals = [
     "kuala lumpur" 
 ]
 
-dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(1,9)]
+dates = [(datetime.now() - timedelta(day)).strftime("%Y-%m-%d") for day in range(0,9)]
 
 def get_daily_history():
     for capital in capitals:
@@ -57,5 +57,6 @@ def get_daily_history():
             capital = re.sub(r'\s+', '_', capital)
             with engine.begin() as connection:
                 days_df.to_sql(f"{capital}_daily" , if_exists='append' , index=False , con=connection)
+                print('successful')
 
 get_daily_history()
