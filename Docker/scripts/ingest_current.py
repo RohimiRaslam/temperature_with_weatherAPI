@@ -19,7 +19,8 @@ def get_current():
     engine = create_engine(f'postgresql+psycopg2://{user}:{password}@{host}:{port}/{db_name}')
     capitals = ["johor bahru", "alor setar", "kota bharu",  "melaka", "seremban", "kuantan", "george town", "ipoh", "kangar", "kota kinabalu", "kuching", "shah alam", "kuala terengganu", "kuala lumpur"]
     current_url = 'http://api.weatherapi.com/v1/current.json'
-    
+    current_df = pd.DataFrame()
+
     for capital in capitals:
         params = {'key' : api_key , 'q': capital , 'aqi' : 'no'}
         raw_data = requests.get(current_url , params=params).json()
@@ -28,12 +29,12 @@ def get_current():
         raw_current = json_normalize(raw_data['current'])
         current = raw_current[['temp_c' , 'is_day' , 'wind_kph' , 'precip_mm' , 'humidity' , 'cloud' , 'feelslike_c' , 'heatindex_c' , 'uv' , 'condition.text']]
         
-        current_df = pd.concat([location , current] , axis=1)
-        current_df = current_df.rename(columns={"condition.text":"condition"} , inplace=False)
+        df = pd.concat([location , current] , axis=1)
+        df = df.rename(columns={"condition.text":"condition"} , inplace=False)
+        current_df = pd.concat([current_df , df] , ignore_index=True , axis=0)
         
-        capital = re.sub(r'\s+', '_', capital)
         
-        with engine.connect() as connection:
-            current_df.to_sql(f'{capital}_current' , if_exists='append' , index=False , con=connection)
+    with engine.connect() as connection:
+        current_df.to_sql(f'weather_current' , if_exists='append' , index=False , con=connection)
 
 get_current()
