@@ -1,5 +1,5 @@
 .env
-temperature
+temperature_*
 log*
 Docker/dags/__pycache__
 Docker/log*
