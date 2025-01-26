@@ -1,16 +1,16 @@
 from airflow import DAG
 from airflow.operators.bash_operator import BashOperator
-from airflow.utils.dates import days_ago
 from datetime import datetime, timedelta
+import pendulum
 
+local_tz = pendulum.timezone("Asia/Kuala_Lumpur")
 
-# Default arguments for all tasks
 default_args = {
     'owner': 'airflow',
     'depends_on_past': False,
     'email_on_failure': False,
     'email_on_retry': False,
-    'start_date': datetime(2025,1,22),
+    'start_date': datetime(2025 , 1 , 22 , tzinfo=local_tz),
     'retries': 3,
     'retry_delay': timedelta(minutes=3),
 }

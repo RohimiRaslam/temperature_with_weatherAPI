@@ -8,7 +8,7 @@ import psycopg2
 import re
 
 def get_current():
-    load_dotenv()
+    load_dotenv(override=True)
 
     api_key = os.getenv('weather_api_key')
     db_name = os.getenv('db_name')
@@ -31,6 +31,11 @@ def get_current():
         
         df = pd.concat([location , current] , axis=1)
         df = df.rename(columns={"condition.text":"condition"} , inplace=False)
+        df['localtime'] = pd.to_datetime(df['localtime'])
+        df['date'] = df['localtime'].dt.date
+        df['time'] = df['localtime'].dt.time
+        df = df.drop('localtime' , axis=1)
+        
         current_df = pd.concat([current_df , df] , ignore_index=True , axis=0)
         
         
@@ -38,3 +43,9 @@ def get_current():
         current_df.to_sql(f'weather_current' , if_exists='append' , index=False , con=connection)
 
 get_current()
+
+
+# to add a funtion to check for yesterday's current weather in the database then delete it
+# 1. connect to database
+# 2. check the date
+# 3. delete if it yesterday's

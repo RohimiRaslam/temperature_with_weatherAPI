@@ -9,7 +9,7 @@ import psycopg2
 import re
 
 def get_hourly_history():
-    load_dotenv()
+    load_dotenv(override=True)
 
     api_key = os.getenv('weather_api_key')
     db_name = os.getenv('db_name')
@@ -34,7 +34,11 @@ def get_hourly_history():
             hours_df['country'] = history_data['location.country']
             hours_df = hours_df.ffill(axis=0)
             hours_df = hours_df.rename(columns={"condition.text":"condition"} , inplace=False).drop(columns=['condition.icon','condition.code'] , axis=1)
-
+            hours_df['time'] = pd.to_datetime(hours_df['time'])
+            hours_df['date'] = hours_df['time'].dt.date
+            hours_df['time'] = hours_df['time'].dt.strftime("%H:%M")
+            hours_df = hours_df[['location' , 'region' , 'country' , 'date' , 'time' , 'is_day' , 'temp_c' , 'humidity' , 'condition' , 'feelslike_c', 'wind_kph' , 'precip_mm'  , 'cloud'  , 'uv' , 'heatindex_c' , 'pressure_mb' , 'dewpoint_c']]
+            
             capital = re.sub(r'\s+', '_', capital)
 
             with engine.connect() as conn:

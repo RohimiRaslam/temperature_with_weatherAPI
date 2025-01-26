@@ -9,7 +9,7 @@ import psycopg2
 import re
 
 def get_daily_history():
-    load_dotenv()
+    load_dotenv(override=True)
 
     api_key = os.getenv('weather_api_key')
     db_name = os.getenv('db_name')
@@ -27,11 +27,12 @@ def get_daily_history():
             params = {'key': api_key, 'q': capital , 'dt': date}
             raw_data = requests.get(history_url , params=params).json()
             history_data = pd.json_normalize(raw_data)
-            days_df = pd.json_normalize(history_data['forecast.forecastday'][0][0]['day'])
 
+            days_df = pd.json_normalize(history_data['forecast.forecastday'][0][0]['day'])
             days_df['date'] = history_data['forecast.forecastday'][0][0]['date']
             days_df['location'] = history_data['location.name']
             days_df = days_df.rename(columns={"condition.text":"condition"} , inplace=False).drop(columns=['condition.icon','condition.code'] , axis=1)
+            days_df = days_df[['location' , 'date' , 'maxtemp_c' , 'mintemp_c' , 'avgtemp_c' , 'avghumidity' , 'uv' , 'condition']]
 
             capital = re.sub(r'\s+', '_', capital)
             with engine.begin() as connection:
