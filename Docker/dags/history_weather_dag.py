@@ -18,7 +18,7 @@ default_args = {
 with DAG(
     'history_weather',
     default_args=default_args,
-    schedule_interval='30 23 * * *',  # runs daily at 2330
+    schedule_interval='30 00 * * *',  # runs daily at 0030
     catchup=False,
 ) as dag:
     
