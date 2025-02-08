@@ -22,8 +22,10 @@ with DAG(
     catchup=False,
 ) as dag:
     
-    daily_script_task = BashOperator(task_id='ingest_daily' , bash_command='python /opt/airflow/scripts/ingest_history_daily.py')
-    hourly_script_task = BashOperator(task_id='ingest_hourly' , bash_command='python /opt/airflow/scripts/ingest_history_hourly.py')
+    extract_history_daily_script_task = BashOperator(task_id='extract_daily' , bash_command='python /opt/airflow/scripts/ingest_history_daily.py')
+    extract_history_hourly_script_task = BashOperator(task_id='extract_hourly' , bash_command='python /opt/airflow/scripts/ingest_history_hourly.py')
+    transform_history_daily_script_task = BashOperator(task_id='transform_daily' , bash_command='python /opt/airflow/scripts/transform_history_daily.py')
+    transform_history_hourly_script_task = BashOperator(task_id='transform_hourly' , bash_command='python /opt/airflow/scripts/transform_history_hourly.py')
 
-daily_script_task 
-hourly_script_task 
+extract_history_daily_script_task >> transform_history_daily_script_task
+extract_history_hourly_script_task  >> transform_history_hourly_script_task
