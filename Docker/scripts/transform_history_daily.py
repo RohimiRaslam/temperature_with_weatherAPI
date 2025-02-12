@@ -19,29 +19,22 @@ inspector  = inspect(engine)
 def transform_history_daily():
     # create cleaned tables by states
     for name in inspector.get_table_names():    
-        if not "cleaned" in name:
-            if "daily" in name:
-                transformation_query_daily = f"""
-                    drop table if exists {name}_cleaned;
+        if "cleaned" not in name and "daily" in name:
+            transformation_query_daily = f"""
+                drop table if exists {name}_cleaned;
 
-                    create table {name}_cleaned as
-                    select distinct on (date) *
-                    from {name};
-                    """
-                with engine.begin() as connection:
-                    connection.execute(text(transformation_query_daily))
-            else:
-                continue
+                create table {name}_cleaned as
+                select distinct on (date) *
+                from {name};
+                """
+            with engine.begin() as connection:
+                connection.execute(text(transformation_query_daily))
+        else:
+            continue
 
     # create list of cleaned daily table names
-    cleaned_daily_tables = []
-    for name in inspector.get_table_names():
-        if not "all_states_daily_cleaned" in name:
-            if "cleaned" in name:
-                if "daily" in name:
-                    cleaned_daily_tables.append(name)
-                else:
-                    continue
+
+    cleaned_daily_tables = [i for i in inspector.get_table_names() if "all_states_daily_cleaned" not in i and "cleaned" in i and "daily" in i]
 
     # create a table of all states 
     daily_cleaned_union_string = ""
@@ -55,5 +48,11 @@ def transform_history_daily():
     # run query to clean
     with engine.begin() as connection:
         connection.execute(text(daily_cleaned_query_string))
+
+    # run query to drop state's cleaned tables
+    for i in cleaned_daily_tables:
+        drop_query = f"drop table if exists {i}"
+        with engine.begin() as connection:
+            connection.execute(text(drop_query))
 
 transform_history_daily()

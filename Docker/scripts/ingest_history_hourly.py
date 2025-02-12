@@ -36,7 +36,7 @@ def get_hourly_history():
             hours_df = hours_df.rename(columns={"condition.text":"condition"} , inplace=False).drop(columns=['condition.icon','condition.code'] , axis=1)
             hours_df['time'] = pd.to_datetime(hours_df['time'])
             hours_df['date'] = hours_df['time'].dt.date
-            hours_df['time'] = hours_df['time'].dt.strftime("%H:%M")
+            hours_df['time'] = hours_df['time'].dt.time
             hours_df = hours_df[['location' , 'region' , 'country' , 'date' , 'time' , 'is_day' , 'temp_c' , 'humidity' , 'condition' , 'feelslike_c', 'wind_kph' , 'precip_mm'  , 'cloud'  , 'uv' , 'heatindex_c' , 'pressure_mb' , 'dewpoint_c']]
             
             capital = re.sub(r'\s+', '_', capital)

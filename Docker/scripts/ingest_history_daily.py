@@ -29,7 +29,7 @@ def get_daily_history():
             history_data = pd.json_normalize(raw_data)
 
             days_df = pd.json_normalize(history_data['forecast.forecastday'][0][0]['day'])
-            days_df['date'] = history_data['forecast.forecastday'][0][0]['date']
+            days_df['date'] = pd.to_datetime(history_data['forecast.forecastday'][0][0]['date'])
             days_df['location'] = history_data['location.name']
             days_df = days_df.rename(columns={"condition.text":"condition"} , inplace=False).drop(columns=['condition.icon','condition.code'] , axis=1)
             days_df = days_df[['location' , 'date' , 'maxtemp_c' , 'mintemp_c' , 'avgtemp_c' , 'avghumidity' , 'uv' , 'condition']]

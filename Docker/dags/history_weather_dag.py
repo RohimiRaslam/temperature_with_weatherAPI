@@ -12,7 +12,7 @@ default_args = {
     'email_on_retry': False,
     'start_date': datetime(2025 , 1 , 22 , tzinfo=local_tz),
     'retries': 3,
-    'retry_delay': timedelta(minutes=3),
+    'retry_delay': timedelta(seconds=30),
 }
 
 with DAG(

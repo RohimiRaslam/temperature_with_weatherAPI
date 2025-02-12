@@ -55,4 +55,10 @@ def transform_history_hourly():
     with engine.begin() as connection:
         connection.execute(text(hourly_cleaned_query_string))
 
+    # run query to drop state's cleaned tables
+    for i in cleaned_hourly_tables:
+        drop_query = f"drop table if exists {i}"
+        with engine.begin() as connection:
+            connection.execute(text(drop_query))
+
 transform_history_hourly()
